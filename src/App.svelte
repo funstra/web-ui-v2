@@ -40,6 +40,20 @@
       }
     }
   };
+
+  const getRelation = (cIdx: number, mIdx: number) => {
+    const _cv = $chains.o.find(
+      o => o.source.cv.chain === cIdx && o.source.cv.module === mIdx
+    );
+    const _gt = $chains.o.find(
+      o => o.source.gt.chain === cIdx && o.source.gt.module === mIdx
+    );
+    console.log(_cv, _gt);
+    return {
+      cv: _cv,
+      gt: _gt,
+    };
+  };
 </script>
 
 <main>
@@ -69,79 +83,89 @@
 
   <button class="add-chain" on:click={addChain}>add chain</button>
 
-  <ul class="chains">
-    {#each $chains as chain, cIdx (cIdx)}
-      <li class="chain">
-        <code class="index">
-          index:
-          <span>{chain.index}</span>
-        </code>
+  {#if $chains?.c}
+    <ul class="chains">
+      {#each $chains?.c as chain, cIdx (cIdx)}
+        <li class="chain">
+          <code class="index">
+            index:
+            <span>{chain.index}</span>
+          </code>
 
-        {#if chain.input}
-          <hr />
-          <ul class="input">
-            <h4>Inputs</h4>
-            {#each Object.keys(chain.input) as k}
-              <li class={k}>
-                <h5>{k}</h5>
-                <ul>
-                  <li>
-                    ch:
-                    <input type="number" bind:value={chain.input[k].ch} />
-                  </li>
-                  <li>
-                    pid:
-                    <input type="number" bind:value={chain.input[k].pid} />
-                  </li>
-                </ul>
-              </li>
-            {/each}
-          </ul>
-        {/if}
-
-        {#if chain.modules}
-          <hr />
-          <ul class="modules">
-            <h4>Modules</h4>
-            {#each chain.modules as module, mIdx (mIdx)}
-              <li>
-                <hr />
-                <h5>{module.name}</h5>
-
-                <ul class="params">
-                  {#each module.params as param, pIdx (pIdx)}
-                    <li on:input={e => sendParam(cIdx, mIdx, pIdx, param)}>
-                      <span>{param.name}</span>
-                      :
-                      <input type="number" bind:value={param.value} />
+          {#if chain.input}
+            <hr />
+            <ul class="input">
+              <h4>Inputs</h4>
+              {#each Object.keys(chain.input) as k}
+                <li class={k}>
+                  <h5>{k}</h5>
+                  <ul>
+                    <li>
+                      ch:
+                      <input type="number" bind:value={chain.input[k].ch} />
                     </li>
-                  {/each}
-                </ul>
-              </li>
-            {/each}
-          </ul>
-        {/if}
+                    <li>
+                      pid:
+                      <input type="number" bind:value={chain.input[k].pid} />
+                    </li>
+                  </ul>
+                </li>
+              {/each}
+            </ul>
+          {/if}
 
-        <label>
-          <span>add module</span>
-          <select
-            name="newModule"
-            value=""
-            on:input={({ target }) => {
-              chains.addModule(COMmodule(target.value), cIdx);
-              target.value = "";
-            }}
-          >
-            {#each Object.keys(param_lookup) as typeKey, i (i)}
-              <option value={typeKey}>
-                {typeKey}
-              </option>
-            {/each}
-          </select>
-        </label>
-      </li>
-    {/each}
-  </ul>
+          {#if chain.modules}
+            <hr />
+            <ul class="modules">
+              <h4>Modules</h4>
+              {#each chain.modules as module, mIdx (mIdx)}
+                <!-- !!! -->
+
+                {#if getRelation(cIdx, mIdx).cv}
+                  <ul class="out" />
+                {/if}
+
+                <!-- !!! -->
+
+                <li>
+                  <hr />
+                  <h5>{module.name}</h5>
+
+                  <ul class="params">
+                    {#each module.params as param, pIdx (pIdx)}
+                      <li on:input={e => sendParam(cIdx, mIdx, pIdx, param)}>
+                        <span>{param.name}</span>
+                        :
+                        <input type="number" bind:value={param.value} />
+                      </li>
+                    {/each}
+                  </ul>
+                </li>
+              {/each}
+            </ul>
+          {/if}
+
+          <label>
+            <span>add module</span>
+            <select
+              name="newModule"
+              value=""
+              on:input={({ target }) => {
+                chains.addModule(COMmodule(target.value), cIdx);
+                target.value = "";
+              }}
+            >
+              {#each Object.keys(param_lookup) as typeKey, i (i)}
+                <option value={typeKey}>
+                  {typeKey}
+                </option>
+              {/each}
+            </select>
+          </label>
+        </li>
+      {/each}
+    </ul>
+  {/if}
 </main>
 
 <style>
