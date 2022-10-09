@@ -21,7 +21,6 @@ export const send = <T extends msg_types>(type: T, struct: msg_type_lookup[T]) =
 
 export const recive = (data: string) => {
     const res = parseConfString(data)
-    console.log(res.outs)
     chains.set({
         c: res.chains,
         o: res.outs

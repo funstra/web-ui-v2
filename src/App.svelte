@@ -3,7 +3,7 @@
   import { COMmodule, param_lookup } from "$lib/com/definition/module";
   import { sendParam } from "$lib/com/director";
   import { ws } from "$lib/com/director/ws";
-  import { chains } from "$lib/store";
+  import { chains, mapping } from "$lib/store";
 
   const addChain = () => {
     const chain = COMChain({
@@ -20,7 +20,6 @@
       [_u, _p] = $ws.ws.url.split(":").slice(1);
       _u = _u.split("//")[1];
       _p = _p.slice(0, -1);
-      console.log(_u, _p);
     } else {
       _u = "";
       _p = "";
@@ -48,12 +47,13 @@
     const _gt = $chains.o.find(
       o => o.source.gt.chain === cIdx && o.source.gt.module === mIdx
     );
-    console.log(_cv, _gt);
     return {
       cv: _cv,
       gt: _gt,
     };
   };
+
+  $: console.log("mapping: ", $mapping);
 </script>
 
 <main>
@@ -121,12 +121,6 @@
               {#each chain.modules as module, mIdx (mIdx)}
                 <!-- !!! -->
 
-                {#if getRelation(cIdx, mIdx).cv}
-                  <ul class="out" />
-                {/if}
-
-                <!-- !!! -->
-
                 <li>
                   <hr />
                   <h5>{module.name}</h5>
@@ -140,6 +134,24 @@
                       </li>
                     {/each}
                   </ul>
+
+                  {#if $mapping[cIdx][mIdx].length}
+                    <h5>Outs</h5>
+                    <ul class="out">
+                      {#each $mapping[cIdx][mIdx] as out}
+                        <li>
+                          <span>ch: </span>
+                          <span>{out.destination.ch}</span>
+                          <span>pid: </span>
+                          <span>{out.destination.pid}</span>
+                        </li>
+                      {/each}
+                    </ul>
+                  {/if}
+                  <button on:click={e => chains.removeModule(cIdx, mIdx)}
+                    >rem</button
+                  >
+                  <!-- !!! -->
                 </li>
               {/each}
             </ul>
@@ -264,8 +276,12 @@
   .chain input {
     width: 6ch;
   }
-  .modules li {
-    padding: 2px;
+  .modules > li {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px;
+    border: 0.5px currentColor solid;
   }
   .modules li:hover {
     background-color: #f9f9f9;
@@ -275,5 +291,8 @@
     border-width: 1px;
     width: 10%;
     margin: 0;
+  }
+  .out {
+    font-family: monospace;
   }
 </style>

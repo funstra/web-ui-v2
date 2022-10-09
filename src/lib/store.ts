@@ -27,13 +27,24 @@ const createChainStore = (init?: { c?: COMchainStruct[], o?: COMoutStruct[] }) =
                 }) : chain),
                 o: v.o
             }))
+        },
+        removeModule: (cIdx: number, mIdx: number) => {
+            state.update(v => ({
+                c: v.c.map(chain => {
+                    if (chain.index === cIdx) {
+                        return ({ ...chain, modules: chain.modules.filter((module, i) => i !== mIdx) })
+                    }
+                    return chain
+                }),
+                o: v.o
+            }))
         }
     };
 };
 
 
 const createRelation = () => {
-    const state = writable(new Map())
+    const state = writable([])
     return {
         // subscribe: state.subscribe
         ...state
@@ -43,12 +54,9 @@ const createRelation = () => {
 export const relation = createRelation()
 
 
-
 export const chains = createChainStore();
-derived([chains, relation], ([_chains, _relation]) => {
-    _chains.c.map((chain, cIdx) => {
-        chain.modules.map((module, mIdx) => {
-            _chains.o.filter(out => (out.source.cv.chain === cIdx && out.source.cv.module) || out.source.gt.chain && out.source.gt.module)
-        })
-    })
+export const mapping = derived([chains], ([_chains]) => {
+    if (_chains) {
+        return _chains.c.map((chain, cIdx) => chain.modules.map((module, mIdx) => _chains.o.filter(out => (out.source.cv.chain === cIdx && out.source.cv.module === mIdx) || out.source.gt.chain === cIdx && out.source.gt.module === mIdx)))
+    }
 })
